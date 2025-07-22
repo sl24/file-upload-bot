@@ -12,5 +12,3 @@ services:
         fromSecret: API_HASH
       - key: BOT_TOKEN
         fromSecret: BOT_TOKEN
-    ports:
-      - 10000
