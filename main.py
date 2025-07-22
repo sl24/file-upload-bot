@@ -159,4 +159,6 @@ async def main():
     await server_task
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("Бот и сервер запущены")
+    app.run()
+
