@@ -15,7 +15,8 @@ API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN, workers=1)
+# Убрал workers=1, чтобы использовать стандартное поведение Pyrogram
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 UPLOAD_DIR = "uploads"
@@ -91,8 +92,10 @@ async def handle_single_file(client: Client, message: Message):
     file_path = os.path.join(UPLOAD_DIR, file_name)
     await message.download(file_name=file_path)
 
-    link = f"https://file-upload-bot.onrender.com/download/{quote(file_name)}"
+    link = f"http://127.0.0.1:8000/download/{quote(file_name)}"
+    print(f"[DEBUG] Отправляем ссылку: {link}")
     await message.reply(f"✅ Ваша ссылка на скачивание:\n{link}")
+    print("[DEBUG] Сообщение с ссылкой отправлено")
 
 
 async def delayed_process(media_group_id):
@@ -106,6 +109,7 @@ async def process_media_group(media_group_id):
         return
 
     messages = data["messages"]
+    user_id = messages[0].from_user.id
 
     for m in messages:
         size = get_file_size(m)
@@ -140,7 +144,9 @@ async def process_media_group(media_group_id):
             zipf.write(file_path, arcname=filename)
 
     link = f"https://file-upload-bot.onrender.com/download/{quote(archive_name)}"
+    print(f"[DEBUG] Отправляем ссылку на архив: {link}")
     await messages[0].reply(f"✅ Архив готов: {link}")
+    print("[DEBUG] Сообщение с архивом отправлено")
 
 
 if __name__ == "__main__":
