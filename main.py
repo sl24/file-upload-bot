@@ -25,7 +25,7 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-media_groups = {}  # media_group_id: {"messages": [...], "timer": task}
+media_groups = {}
 
 def generate_hash(text: str) -> str:
     return hashlib.md5(f"{text}_{time.time()}".encode()).hexdigest()[:8]
@@ -136,12 +136,16 @@ def download_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found.")
     return FileResponse(file_path, filename=filename, media_type="application/octet-stream")
 
-async def start_services():
+
+async def run_bot():
     await app.start()
-    config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=10000, log_level="info")
-    server = uvicorn.Server(config)
-    await server.serve()
+    await app.idle()
+
+def start_fastapi():
+    uvicorn.run(fastapi_app, host="0.0.0.0", port=10000, log_level="info")
 
 if __name__ == "__main__":
-    print("Бот и сервер запущены")
-    asyncio.run(start_services())
+    loop = asyncio.get_event_loop()
+    loop.create_task(run_bot())
+    print("Бот запущен. Запускаем FastAPI...")
+    start_fastapi()
