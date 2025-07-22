@@ -18,6 +18,9 @@ API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+# Используем переменную окружения PORT или дефолт 10000
+PORT = int(os.getenv("PORT", 10000))
+
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN, workers=1)
 fastapi_app = FastAPI()
 
@@ -40,8 +43,6 @@ def get_file_size(message: Message):
     elif message.photo:
         return message.photo.file_size
     return None
-
-# Telegram handlers
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
@@ -131,12 +132,6 @@ async def process_media_group(media_group_id):
     link = f"https://file-upload-bot.onrender.com/download/{quote(archive_name)}"
     await messages[0].reply(f"✅ Архив готов: {link}")
 
-# FastAPI routes
-
-@fastapi_app.get("/")
-def root():
-    return {"message": "Файловый бот работает. Отправляйте файлы в Telegram."}
-
 @fastapi_app.get("/download/{filename}")
 def download_file(filename: str):
     file_path = os.path.join(UPLOAD_DIR, filename)
@@ -144,19 +139,19 @@ def download_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found.")
     return FileResponse(file_path, filename=filename, media_type="application/octet-stream")
 
-# Запуск бота и FastAPI вместе
+
+async def run_bot():
+    await app.start()
+    print("Бот запущен")
+    await app.wait_closed()  # ждем завершения бота (Ctrl+C)
+
+async def run_server():
+    config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=PORT, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
 
 async def main():
-    await app.start()
-    print("Бот запущен. Запускаем FastAPI...")
-    config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=10000, log_level="info")
-    server = uvicorn.Server(config)
-    server_task = asyncio.create_task(server.serve())
-    try:
-        await app.idle()  # держим бот запущенным
-    finally:
-        server.should_exit = True
-        await server_task
+    await asyncio.gather(run_bot(), run_server())
 
 if __name__ == "__main__":
     asyncio.run(main())
