@@ -91,7 +91,7 @@ async def handle_single_file(client: Client, message: Message):
     file_path = os.path.join(UPLOAD_DIR, file_name)
     await message.download(file_name=file_path)
 
-    link = f"http://127.0.0.1:8000/download/{quote(file_name)}"
+    link = f"https://file-upload-bot.onrender.com/download/{quote(file_name)}"
     await message.reply(f"✅ Ваша ссылка на скачивание:\n{link}")
 
 
@@ -106,7 +106,6 @@ async def process_media_group(media_group_id):
         return
 
     messages = data["messages"]
-    user_id = messages[0].from_user.id
 
     for m in messages:
         size = get_file_size(m)
@@ -140,7 +139,7 @@ async def process_media_group(media_group_id):
         for file_path, filename in temp_files:
             zipf.write(file_path, arcname=filename)
 
-    link = f"https://file-upload-bot.onrender.com/download/{filename}"
+    link = f"https://file-upload-bot.onrender.com/download/{quote(archive_name)}"
     await messages[0].reply(f"✅ Архив готов: {link}")
 
 
