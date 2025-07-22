@@ -18,7 +18,7 @@ API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN, workers=1)
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 fastapi_app = FastAPI()
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
@@ -136,16 +136,12 @@ def download_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found.")
     return FileResponse(file_path, filename=filename, media_type="application/octet-stream")
 
-
-async def run_bot():
+async def main():
     await app.start()
-    await app.idle()
-
-def start_fastapi():
-    uvicorn.run(fastapi_app, host="0.0.0.0", port=10000, log_level="info")
+    print("Бот запущен. Запускаем FastAPI...")
+    config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=10000, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(run_bot())
-    print("Бот запущен. Запускаем FastAPI...")
-    start_fastapi()
+    asyncio.run(main())
