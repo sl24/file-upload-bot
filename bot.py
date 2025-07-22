@@ -140,7 +140,7 @@ async def process_media_group(media_group_id):
         for file_path, filename in temp_files:
             zipf.write(file_path, arcname=filename)
 
-    link = f"http://127.0.0.1:8000/download/{quote(archive_name)}"
+    link = f"https://file-upload-bot.onrender.com/download/{filename}"
     await messages[0].reply(f"✅ Архив готов: {link}")
 
 
